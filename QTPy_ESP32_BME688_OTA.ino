@@ -57,20 +57,16 @@ const char * humidityTopic = "livingRoom/QTPy/bme688/humidity";				// The topic 
 const char * gasResistanceTopic = "livingRoom/QTPy/bme688/gasResistance";	// The topic used to publish the gas resistance.
 const char * altitudeTopic = "livingRoom/QTPy/bme688/altitude";				// The topic used to publish the altitude (derived from barometric pressure).
 const char * mqttTopic = "espWeather";													// The topic used to publish a single JSON message containing all data.
-unsigned long lastPublishTime = 0;														// This is used to determine the time since last MQTT publish.
-unsigned int consecutiveBadTemp = 0;													//
-unsigned int consecutiveBadHumidity = 0;												//
-unsigned long sensorPollDelay = 10000;													// This is the delay between polls of the soil sensor.  This should be greater than 100 milliseconds.
-unsigned long lastPollTime = 0;															// This is used to determine the time since last sensor poll.
+unsigned long lastPublishTime = 0;														// Stores the time of the last MQTT publish.
+unsigned long sensorPollDelay = 10000;													// The delay between polls of the sensor.  This should be greater than 100 milliseconds.
+unsigned long lastPollTime = 0;															// Stores the time of the last sensor poll.
 float SEALEVELPRESSURE_HPA = 1025.0;													// This is the sea-level barometric pressure for the sensor's location.
 char ipAddress[16];
 char macAddress[18];
-int loopCount = 0;
-int publishDelay = 60000;
-uint32_t start;
-uint32_t stop;
+int loopCount = 0;											// This keeps track of the 
+int publishDelay = 60000;									// The delay between MQTT publishes.
 unsigned long lastPublish = 0;							// In milliseconds, this sets a limit at 49.7 days of time.
-unsigned long mqttReconnectDelay = 5000;				// An unsigned long can hold values from 0-4,294,967,295.  In milliseconds, this sets a limit at 49.7 days of time.
+unsigned long mqttReconnectDelay = 5000;				// The time between MQTT connection attempts.
 float bmeTempC;
 float bmePressureHPa;
 float bmeHumidity;
