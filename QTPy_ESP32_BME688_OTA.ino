@@ -33,33 +33,36 @@
 
 
 /**
- * Declare network variables.
+ * Global variables.
  * Adjust the commented-out variables to match your network and broker settings.
- * The commented-out variables are stored in "privateInfo.h", which I do not upload to GitHub.
+ * I store those variables in "privateInfo.h", which is not uploaded to GitHub.
  */
 //const char *wifiSsid = "yourSSID";				// Typically kept in "privateInfo.h".
 //const char *wifiPassword = "yourPassword";		// Typically kept in "privateInfo.h".
 //const char *mqttBroker = "yourBrokerAddress";	// Typically kept in "privateInfo.h".
 //const int mqttPort = 1883;							// Typically kept in "privateInfo.h".
-// My topic format is: home/<device MAC>/sensors/<sensor type>/<temperature, humidity, pressure, etc.>
-const char * sketchName = "QTPy_ESP32_SHT40_OTA";
-const char * notes = "Adafruit QT Py ESP32-S2 with SHT40 and OTA";
-const char * commandTopic = "office/QTPy/command";          // The topic used to subscribe to update commands.  Commands: publishTelemetry, changeTelemetryInterval, publishStatus.
-const char * sketchTopic = "office/QTPy/sketch";            // The topic used to publish the sketch name.
-const char * macTopic = "office/QTPy/mac";                  // The topic used to publish the MAC address.
-const char * ipTopic = "office/QTPy/ip";                    // The topic used to publish the IP address.
-const char * rssiTopic = "office/QTPy/rssi";                // The topic used to publish the WiFi Received Signal Strength Indicator.
-const char * loopCountTopic = "office/QTPy/loopCount";      // The topic used to publish the loop count.
-const char * notesTopic = "office/QTPy/notes";              // The topic used to publish notes relevant to this project.
-const char * tempCTopic = "office/QTPy/sht40/tempC";        // The topic used to publish the temperature.
-const char * humidityTopic = "office/QTPy/sht40/humidity";  // The topic used to publish the humidity.
-const char * mqttTopic = "espWeather";                      // The topic used to publish a single JSON message containing all data.
-unsigned long lastPublishTime = 0;                          // This is used to determine the time since last MQTT publish.
-unsigned int consecutiveBadTemp = 0;
-unsigned int consecutiveBadHumidity = 0;
-unsigned long sensorPollDelay = 10000;						// This is the delay between polls of the soil sensor.  This should be greater than 100 milliseconds.
-unsigned long lastPollTime = 0;								// This is used to determine the time since last sensor poll.
-
+const char * sketchName = "QTPy_ESP32_BME688_OTA";
+const char * notes = "Adafruit QT Py ESP32-S2 with BME688 and OTA";
+// My topic format is: location/<device name>/sensor/<temperature, humidity, pressure, etc.>
+const char * commandTopic = "livingRoom/QTPy/command";							// The topic used to subscribe to update commands.  Commands: publishTelemetry, changeTelemetryInterval, publishStatus.
+const char * sketchTopic = "livingRoom/QTPy/sketch";								// The topic used to publish the sketch name.
+const char * macTopic = "livingRoom/QTPy/mac";										// The topic used to publish the MAC address.
+const char * ipTopic = "livingRoom/QTPy/ip";											// The topic used to publish the IP address.
+const char * rssiTopic = "livingRoom/QTPy/rssi";									// The topic used to publish the WiFi Received Signal Strength Indicator.
+const char * loopCountTopic = "livingRoom/QTPy/loopCount";						// The topic used to publish the loop count.
+const char * notesTopic = "livingRoom/QTPy/notes";									// The topic used to publish notes relevant to this project.
+const char * tempCTopic = "livingRoom/QTPy/bme688/tempC";						// The topic used to publish the temperature.
+const char * pressureHPaTopic = "livingRoom/QTPy/bme688/pressureHPa";		// The topic used to publish the barometric pressure in hectoPascals/millibars.
+const char * humidityTopic = "livingRoom/QTPy/bme688/humidity";				// The topic used to publish the humidity.
+const char * gasResistanceTopic = "livingRoom/QTPy/bme688/gasResistance";	// The topic used to publish the gas resistance.
+const char * altitudeTopic = "livingRoom/QTPy/bme688/altitude";				// The topic used to publish the altitude (derived from barometric pressure).
+const char * mqttTopic = "espWeather";													// The topic used to publish a single JSON message containing all data.
+unsigned long lastPublishTime = 0;														// This is used to determine the time since last MQTT publish.
+unsigned int consecutiveBadTemp = 0;													//
+unsigned int consecutiveBadHumidity = 0;												//
+unsigned long sensorPollDelay = 10000;													// This is the delay between polls of the soil sensor.  This should be greater than 100 milliseconds.
+unsigned long lastPollTime = 0;															// This is used to determine the time since last sensor poll.
+float SEALEVELPRESSURE_HPA = 1025.0;													// This is the sea-level barometric pressure for the sensor's location.
 char ipAddress[16];
 char macAddress[18];
 int loopCount = 0;
@@ -75,11 +78,11 @@ float bmeGasResistance;
 float bmeAltitude;
 
 
-// Create class objects.
-WiFiClient espClient;							// Network client.
-PubSubClient mqttClient( espClient );		// MQTT client.
-Adafruit_NeoPixel pixels( NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800 );
-Adafruit_BME680 bme;								//
+// Class objects.
+WiFiClient espClient;																			// Network client.  Used only byt the MQTT client.
+PubSubClient mqttClient( espClient );														// MQTT client to manage communication to the broker.
+Adafruit_NeoPixel pixels( NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800 );		// An object to manage the onboard RGB LED.
+Adafruit_BME680 bme;																				// The Bosche BME688 atmospheric sensor.
 
 
 void onReceiveCallback( char * topic, byte * payload, unsigned int length )
@@ -287,7 +290,7 @@ void setupBme688()
 } // End of setupBme688() function.
 
 
-void readBme688()
+void readTelemetry()
 {
 	if( !bme.performReading() )
 	{
@@ -322,7 +325,7 @@ void readBme688()
 	Serial.println( " m" );
 
 	Serial.println();
-} // End of readBme688() function.
+} // End of readTelemetry() function.
 
 
 // mqttConnect() will attempt to (re)connect the MQTT client.
@@ -414,39 +417,6 @@ bool mqttConnect( int maxAttempts )
 
 
 /*
- * readTelemetry() will:
- * 1. read from all available sensors
- * 2. store legitimate values in global variables
- * 3. increment a counter if any value is invalid
- */
-void readTelemetry()
-{
-	sensors_event_t temporaryHumidity;
-	sensors_event_t temporaryTemperature;
-	// Populate temp and humidity objects with fresh data.
-	sht40.getEvent( &temporaryHumidity, &temporaryTemperature );
-
-	// Ignore obviously invalid temperature readings.
-	if( temporaryTemperature.temperature > -30 || temporaryTemperature.temperature < 90 )
-	{
-		tempC = temporaryTemperature;
-		consecutiveBadTemp = 0;
-	}
-	else
-		consecutiveBadTemp++;
-
-	// Ignore obviously invalid humidity readings.
-	if( temporaryHumidity.relative_humidity >= 0 || temporaryHumidity.relative_humidity <= 100 )
-	{
-		humidity = temporaryHumidity;
-		consecutiveBadHumidity = 0;
-	}
-	else
-		consecutiveBadHumidity++;
-} // End of readTelemetry() function.
-
-
-/*
  * publishTelemetry() will publish the sensor and device data over MQTT.
  */
 void publishTelemetry()
@@ -463,9 +433,9 @@ void publishTelemetry()
 	bool success = mqttClient.publish( mqttTopic, mqttString, false );
 	if( success )
 	{
-		Serial.println( "Succsefully published to:" );
+		Serial.println( "Successfully published to:" );
 		char buffer[20];
-		// New format: <location>/<device>/<sensor>/<metric>
+		// New topic format: <location>/<device>/<sensor>/<metric>
 		if( mqttClient.publish( sketchTopic, sketchName, false ) )
 			Serial.println( sketchTopic );
 		if( mqttClient.publish( macTopic, macAddress, false ) )
@@ -478,25 +448,18 @@ void publishTelemetry()
 			Serial.println( loopCountTopic );
 		if( mqttClient.publish( notesTopic, notes, false ) )
 			Serial.println( notesTopic );
-		dtostrf( tempC.temperature, 1, 3, buffer );
+
+		dtostrf( bmeTempC, 1, 3, buffer );
 		if( mqttClient.publish( tempCTopic, buffer, false ) )
 			Serial.println( tempCTopic );
-		if( mqttClient.publish( humidityTopic, ltoa( humidity.relative_humidity, buffer, 10 ), false ) )
+		if( mqttClient.publish( pressureHPaTopic, ltoa( bmePressureHPa, buffer, 10 ), false ) )
+			Serial.println( pressureHPaTopic );
+		if( mqttClient.publish( humidityTopic, ltoa( bmeHumidity, buffer, 10 ), false ) )
 			Serial.println( humidityTopic );
-		if( consecutiveBadTemp > 0 )
-		{
-			Serial.print( "\n\n\n\n" );
-			Serial.print( consecutiveBadTemp );
-			Serial.println( " consecutive bad temperature readings!\nReset the device!\n\n" );
-//			resetFunc();	// Call the reset function.
-		}
-		if( consecutiveBadHumidity > 0 )
-		{
-			Serial.print( "\n\n\n\n" );
-			Serial.print( consecutiveBadHumidity );
-			Serial.println( " consecutive bad humidity readings!\nReset the device!\n\n" );
-//			resetFunc();	// Call the reset function.
-		}
+		if( mqttClient.publish( gasResistanceTopic, ltoa( bmeGasResistance, buffer, 10 ), false ) )
+			Serial.println( gasResistanceTopic );
+		if( mqttClient.publish( altitudeTopic, ltoa( bmeAltitude, buffer, 10 ), false ) )
+			Serial.println( altitudeTopic );
 
 		Serial.print( "Successfully published to '" );
 		Serial.print( mqttTopic );
@@ -525,11 +488,6 @@ void loop()
 	if( lastPollTime == 0 || ( ( time > sensorPollDelay ) && ( time - sensorPollDelay ) > lastPollTime ) )
 	{
 		readTelemetry();
-		Serial.print( "Temperature: " );
-		Serial.print( tempC.temperature );
-		Serial.println( " C" );
-		Serial.print( "Humidity: " );
-		Serial.println( humidity.relative_humidity );
 		lastPollTime = millis();
 		Serial.print( "Next telemetry poll in " );
 		Serial.print( sensorPollDelay / 1000 );
@@ -546,13 +504,6 @@ void loop()
 
 		// Populate tempC and humidity objects with fresh data.
 		readTelemetry();
-
-		Serial.print( "Temperature: " );
-		Serial.print( tempC.temperature );
-		Serial.println( " C" );
-		Serial.print( "Humidity: " );
-		Serial.print( humidity.relative_humidity );
-		Serial.println( "% rH" );
 
 		publishTelemetry();
 
