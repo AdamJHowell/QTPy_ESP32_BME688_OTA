@@ -8,13 +8,13 @@
 #include "WiFi.h"						// This header is part of the standard library.  https://www.arduino.cc/en/Reference/WiFi
 #include <Wire.h>						// This header is part of the standard library.  https://www.arduino.cc/en/reference/wire
 #include <PubSubClient.h>			// PubSub is the MQTT API.  Author: Nick O'Leary  https://github.com/knolleary/pubsubclient
-#include "Adafruit_BME680.h"		// Adafruit BME680 (and BME688) library.  https://github.com/adafruit/Adafruit_BME680
+#include <ArduinoJson.h>			// A JSON manipulation library.  Author: Benoît Blanchon  https://github.com/bblanchon/ArduinoJson  https://arduinojson.org/
 #include <ESPmDNS.h>					// OTA
 #include <WiFiUdp.h>					// OTA
 #include <ArduinoOTA.h>				// OTA
 #include "privateInfo.h"			// I use this file to hide my network information from random people browsing my GitHub repo.
 #include <Adafruit_NeoPixel.h>	// The Adafruit NeoPixel library to drive the RGB LED on the QT Py.	https://github.com/adafruit/Adafruit_NeoPixel
-#include <ArduinoJson.h>			// https://arduinojson.org/
+#include "Adafruit_BME680.h"		// Adafruit BME680 (and BME688) library.  https://github.com/adafruit/Adafruit_BME680
 
 
 // NeoPixel related values.
@@ -63,7 +63,7 @@ unsigned long lastPollTime = 0;															// Stores the time of the last sen
 float SEALEVELPRESSURE_HPA = 1025.0;													// This is the sea-level barometric pressure for the sensor's location.
 char ipAddress[16];
 char macAddress[18];
-int loopCount = 0;											// This keeps track of the 
+int loopCount = 0;											// This keeps track of the
 int publishDelay = 60000;									// The delay between MQTT publishes.
 unsigned long lastPublish = 0;							// In milliseconds, this sets a limit at 49.7 days of time.
 unsigned long mqttReconnectDelay = 5000;				// The time between MQTT connection attempts.
