@@ -4,6 +4,7 @@ TabWidth:		3
 IndentWidth:	3
 UseTab:			Always
 ColumnLimit:	100
+PenaltyIndentedWhitespace:	0
 
 AlignTrailingComments:						true
 AllowShortFunctionsOnASingleLine:		All
