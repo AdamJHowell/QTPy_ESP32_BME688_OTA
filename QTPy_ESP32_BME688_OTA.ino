@@ -55,14 +55,14 @@
 // const char * mqttBrokerArray[4] = { "Broker1", "Broker2", "Broker3", "192.168.0.2" };		// Typically declared in "privateInfo.h".
 // int const mqttPortArray[4] = { 1883, 1883, 1883, 2112 };												// Typically declared in "privateInfo.h".
 
-const char * hostName = "ESP32_Soil_OTA";												// The hostname used for OTA access.
+const char * hostName = "QTPy_ESP32-S2_BME688_OTA";								// The hostname used for OTA access.
 const char * notes = "Adafruit QT Py ESP32-S2 with BME688 and OTA";			// Notes sent in the bulk publish.
 const char * commandTopic = "livingRoom/QTPy/command";							// The topic used to subscribe to update commands.  Commands: publishTelemetry, changeTelemetryInterval, publishStatus.
 const char * sketchTopic = "livingRoom/QTPy/sketch";								// The topic used to publish the sketch name.
 const char * macTopic = "livingRoom/QTPy/mac";										// The topic used to publish the MAC address.
 const char * ipTopic = "livingRoom/QTPy/ip";											// The topic used to publish the IP address.
 const char * rssiTopic = "livingRoom/QTPy/rssi";									// The topic used to publish the WiFi Received Signal Strength Indicator.
-const char * publishCountTopic = "office/QTPy/publishCount";					// The topic used to publish the loop count.
+const char * publishCountTopic = "livingRoom/QTPy/publishCount";				// The topic used to publish the loop count.
 const char * notesTopic = "livingRoom/QTPy/notes";									// The topic used to publish notes relevant to this project.
 const char * tempCTopic = "livingRoom/QTPy/bme688/tempC";						// The topic used to publish the temperature in Celsius.
 const char * tempFTopic = "livingRoom/QTPy/bme688/tempF";						// The topic used to publish the temperature in Fahrenheit.
@@ -72,15 +72,16 @@ const char * gasResistanceTopic = "livingRoom/QTPy/bme688/gasResistance";	// The
 const char * altitudeMTopic = "livingRoom/QTPy/bme688/altitudeM";				// The topic used to publish the altitude (derived from barometric pressure).
 const char * mqttStatsTopic = "espStats";												// The topic this device will publish to upon connection to the broker.
 const char * mqttTopic = "espWeather";													// The topic used to publish a single JSON message containing all data.
-const int JSON_DOC_SIZE = 512;															// The ArduinoJson document size.
+const unsigned long JSON_DOC_SIZE = 1024;												// The ArduinoJson document size, and size of some buffers.
 unsigned long publishInterval = 60000;													// The delay in milliseconds between MQTT publishes.  This prevents "flooding" the broker.
-unsigned long lastPublishTime = 0;														// Stores the time of the last MQTT publish.
 unsigned long sensorPollInterval = 10000;												// The delay between polls of the sensor.  This should be greater than 100 milliseconds.
-unsigned long lastPollTime = 0;															// Stores the time of the last sensor poll.
 unsigned long mqttReconnectInterval = 5000;											// The time between MQTT connection attempts.
-unsigned int networkIndex = 2112;														// An unsigned integer to hold the correct index for the network arrays: wifiSsidArray[], wifiPassArray[], mqttBrokerArray[], and mqttPortArray[].
 unsigned long wifiConnectionTimeout = 10000;											// The maximum amount of time in milliseconds to wait for a WiFi connection before trying a different SSID.
+unsigned long lastPublishTime = 0;														// Stores the time of the last MQTT publish.
+unsigned long bootTime = 0;																// Stores the time of the most recent boot.
+unsigned long lastPollTime = 0;															// Stores the time of the last sensor poll.
 unsigned long publishCount = 0;															// A count of how many publishes have taken place.
+unsigned int networkIndex = 2112;														// An unsigned integer to hold the correct index for the network arrays: wifiSsidArray[], wifiPassArray[], mqttBrokerArray[], and mqttPortArray[].
 char ipAddress[16];																			// The IPv4 address of the WiFi interface.
 char macAddress[18];																			// The MAC address of the WiFi interface.
 long rssi;																						// A global to hold the Received Signal Strength Indicator.
@@ -125,7 +126,7 @@ void setup()
 	pixels.fill( GRAY );
 	pixels.show();
 
-	Serial.println( "Setup is initializing the I2C bus for the Stemma QT port." );
+	Serial.println( "Configuring I2C to use the Stemma QT port." );
 	Wire.setPins( SDA1, SCL1 );	// This is what selects the Stemma QT port, otherwise the two pin headers will be I2C.
 	Wire.begin();
 
@@ -177,9 +178,6 @@ void setup()
 
 	// Located in NetworkFunctions.ino
 	configureOTA();
-
-	snprintf( ipAddress, 16, "%d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3] );
-	Serial.printf( "IP address: %s\n", ipAddress );
 
 	// Set the LED color to green.
 	pixels.fill( GREEN );
@@ -402,10 +400,9 @@ void loop()
 	if( lastPollTime == 0 || ( ( time > sensorPollInterval ) && ( time - sensorPollInterval ) > lastPollTime ) )
 	{
 		readTelemetry();
+		printTelemetry();
 		lastPollTime = millis();
-		Serial.print( "Next telemetry poll in " );
-		Serial.print( sensorPollInterval / 1000 );
-		Serial.println( " seconds.\n" );
+		Serial.printf( "Next telemetry poll in %lu seconds.\n\n", sensorPollInterval / 1000 );
 	}
 
 	time = millis();

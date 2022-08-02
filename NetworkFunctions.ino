@@ -146,6 +146,10 @@ void wifiMultiConnect()
 		{
 			// Attempt to connect to this WiFi network.
 			Serial.printf( "Wi-Fi mode set to WIFI_STA %s\n", WiFi.mode( WIFI_STA ) ? "" : "Failed!" );
+			if( WiFi.setHostname( hostName ) )
+				Serial.printf( "Network hostname set to '%s'\n", hostName );
+			else
+				Serial.printf( "Failed to set the network hostname to '%s'\n", hostName );
 			WiFi.begin( wifiSsid, wifiPassword );
 
 			unsigned long wifiConnectionStartTime = millis();
@@ -170,13 +174,12 @@ void wifiMultiConnect()
 
 			if( WiFi.status() == WL_CONNECTED )
 			{
-				Serial.print( "IP address: " );
-				snprintf( ipAddress, 16, "%d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3] );
-				Serial.println( ipAddress );
 				// Set the global 'networkIndex' to the index which successfully connected.
 				networkIndex = networkArrayIndex;
 				// Print that WiFi has connected.
 				Serial.println( "\nWiFi connection established!" );
+				snprintf( ipAddress, 16, "%d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3] );
+				Serial.printf( "IP address: %s", ipAddress );
 				return;
 			}
 			else
@@ -224,7 +227,7 @@ int checkForSSID( const char *ssidName )
  */
 bool mqttMultiConnect( int maxAttempts )
 {
-	Serial.println( "Function mqttMultiConnect() has initiated.\n" );
+	Serial.println( "\nFunction mqttMultiConnect() has initiated." );
 	if( WiFi.status() != WL_CONNECTED )
 		wifiMultiConnect();
 
