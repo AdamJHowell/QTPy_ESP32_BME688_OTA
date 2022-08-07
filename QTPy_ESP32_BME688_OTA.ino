@@ -243,20 +243,11 @@ void printUptime()
 	long minutes = seconds / 60;
 	long hours = minutes / 60;
 	if( seconds < 601 )
-	{
-		Serial.print( "seconds: " );
-		Serial.println( seconds );
-	}
+		Serial.printf( "seconds: %ld\n", seconds );
 	else if( minutes < 121 )
-	{
-		Serial.print( "minutes: " );
-		Serial.println( minutes );
-	}
+		Serial.printf( "minutes: %ld\n", minutes );
 	else
-	{
-		Serial.print( "hours: " );
-		Serial.println( hours );
-	}
+		Serial.printf( "hours: %ld\n", hours );
 } // End of printUptime() function.
 
 
