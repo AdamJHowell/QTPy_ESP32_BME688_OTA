@@ -1,6 +1,7 @@
-/*
- * The purpose of this file is to hold network-related functions which are device-agnostic.
- * Ideally, this file could be used by an ESP32, an ESP8266, or an Arduino Uno with WiFi.
+/**
+ * @brief The purpose of this file is to hold network-related functions which are device-agnostic.
+ * This is not realistic because of the presence of onReceiveCallback.
+ * Ideally, this file could be used by an ESP32, ESP8266, or similar boards.
  * Because memory capacity varies wildly from device to device, buffer sizes are declared as variables in the entry-point file.
  */
 
@@ -42,7 +43,7 @@ void onReceiveCallback( char *topic, byte *payload, unsigned int length )
 	{
 		Serial.println( "Changing the publish interval." );
 		unsigned long tempValue = callbackJsonDoc["value"];
-		// Only update the value if it is greater than 4 seconds.  This prevents a seconds vs. milliseconds mixup.
+		// Only update the value if it is greater than 4 seconds.  This prevents a seconds vs. milliseconds mix-up.
 		if( tempValue > 4000 )
 			publishInterval = tempValue;
 		Serial.print( "MQTT publish interval has been updated to " );

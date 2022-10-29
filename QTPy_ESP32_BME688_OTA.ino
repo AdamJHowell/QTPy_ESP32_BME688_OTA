@@ -31,18 +31,18 @@
 
 
 // NeoPixel related values.
-#define NUMPIXELS 1
-#define RED       0xFF0000
-#define ORANGE    0xFFA500
-#define YELLOW    0xFFFF00
-#define GREEN     0x00FF00
-#define BLUE      0x0000FF
-#define INDIGO    0x4B0082
-#define VIOLET    0xEE82EE
-#define PURPLE    0x800080
-#define BLACK     0x000000
-#define GRAY      0x808080
-#define WHITE     0xFFFFFF
+#define NUM_PIXELS 1
+#define RED        0xFF0000
+#define ORANGE     0xFFA500
+#define YELLOW     0xFFFF00
+#define GREEN      0x00FF00
+#define BLUE       0x0000FF
+#define INDIGO     0x4B0082
+#define VIOLET     0xEE82EE
+#define PURPLE     0x800080
+#define BLACK      0x000000
+#define GRAY       0x808080
+#define WHITE      0xFFFFFF
 
 
 /*
@@ -88,17 +88,17 @@ long rssi;																						// A global to hold the Received Signal Strength
 float tempC;																					// The sensor temperature in Celsius.
 float tempF;																					// The sensor temperature in Fahrenheit.
 float pressureHPa;																			// The sensor barometric pressure in hectopascals (millibars).
-float humidity;																				// The sensor relative humidity as a percetage.
-float gasResistance;																			// The sensor VOC level represented as electrical resistence of a MOX sensor in Ohms.
+float humidity;																				// The sensor relative humidity as a percentage.
+float gasResistance;																			// The sensor VOC level represented as electrical resistance of a MOX sensor in Ohms.
 float altitudeM;																				// The sensor estimated altitude in meters.
-float SEALEVELPRESSURE_HPA = 1025.0;													// This is the barometric sea-level pressure for the sensor's location.
+float SEA_LEVEL_PRESSURE_HPA = 1025.0;													// This is the barometric sea-level pressure for the sensor's location.
 
 
 // Class objects.
 WiFiClient wifiClient;																			// Network client.  Used only by the MQTT client.
 PubSubClient mqttClient( wifiClient );														// MQTT client to manage communication to the broker.
-Adafruit_NeoPixel pixels( NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800 );		// An object to manage the onboard RGB LED.
-Adafruit_BME680 bme;																				// The Bosche BME688 atmospheric sensor.
+Adafruit_NeoPixel pixels( NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800 );		// An object to manage the onboard RGB LED.
+Adafruit_BME680 bme;																				// The Bosch BME688 atmospheric sensor.
 
 
 /**
@@ -228,7 +228,7 @@ int readTelemetry()
 	pressureHPa = bme.pressure / 100.0;
 	humidity = bme.humidity;
 	gasResistance = bme.gas_resistance / 1000.0;
-	altitudeM = bme.readAltitude( SEALEVELPRESSURE_HPA );
+	altitudeM = bme.readAltitude( SEA_LEVEL_PRESSURE_HPA );
 	return 0;
 } // End of readTelemetry() function.
 
