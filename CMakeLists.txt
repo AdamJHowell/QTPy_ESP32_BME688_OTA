@@ -9,3 +9,5 @@ add_executable( QTPy_ESP32_BME688_OTA
 		NetworkFunctions.ino
 		privateInfo.h
 		QTPy_ESP32_BME688_OTA.ino )
+
+set_target_properties( QTPy_ESP32_BME688_OTA PROPERTIES LINKER_LANGUAGE CXX )
