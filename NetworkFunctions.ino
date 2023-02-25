@@ -75,18 +75,16 @@ void configureOTA()
 	// The ESP8266 port defaults to 8266
 	// ArduinoOTA.setPort( 8266 );
 	// Authentication is disabled by default.
-	// ArduinoOTA.setPassword( ( const char * )"admin" );
-#elif ESP32
+	ArduinoOTA.setPassword( otaPass );
+#else
 	// The ESP32 hostname defaults to esp32-[MAC]
 	// The ESP32 port defaults to 3232
 	// ArduinoOTA.setPort( 3232 );
 	// Authentication is disabled by default.
-	// ArduinoOTA.setPassword( "admin" );
+	ArduinoOTA.setPassword( otaPass );
 	// Password can be set with it's md5 value as well
 	// MD5( admin ) = 21232f297a57a5a743894a0e4a801fc3
 	// ArduinoOTA.setPasswordHash( "21232f297a57a5a743894a0e4a801fc3" );
-#else
-	// ToDo: Verify how stock Arduino code is meant to handle the port, username, and password.
 #endif
 	ArduinoOTA.setHostname( hostName );
 

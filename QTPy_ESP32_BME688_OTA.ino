@@ -13,36 +13,34 @@
 // These headers are installed when the ESP8266 is installed in board manager.
 #include <ESP8266WiFi.h> // ESP8266 Wifi support.  https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WiFi
 #include <ESP8266mDNS.h> // OTA - Multicast DNS for the ESP8266.
-#elif ESP32
+#else
 // These headers are installed when the ESP32 is installed in board manager.
 #include <WiFi.h>		// ESP32 Wifi support.  https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFi.h
 #include <ESPmDNS.h> // OTA - Multicast DNS for the ESP32.
-#else
-#include <WiFi.h> // Arduino Wifi support.  This header is part of the standard library.  https://www.arduino.cc/en/Reference/WiFi
 #endif
-#include <WiFiUdp.h>					// OTA - Library to send and receive UDP packets.
-#include <ArduinoOTA.h>				// OTA - The Arduino OTA library.  Specific version of this are installed along with specific boards in board manager.
-#include <Wire.h>						// This header is part of the standard library.  https://www.arduino.cc/en/reference/wire
-#include <PubSubClient.h>			// PubSub is the MQTT API.  Author: Nick O'Leary  https://github.com/knolleary/pubsubclient
-#include <ArduinoJson.h>			// A JSON manipulation library.  Author: Benoît Blanchon  https://github.com/bblanchon/ArduinoJson  https://arduinojson.org/
-#include <Adafruit_NeoPixel.h>	// The Adafruit NeoPixel library to drive the RGB LED on the QT Py.	https://github.com/adafruit/Adafruit_NeoPixel
-#include <Adafruit_BME680.h>		// Adafruit BME680 (and BME688) library.  https://github.com/adafruit/Adafruit_BME680
-#include "privateInfo.h"			// Contains passwords, settings, and API keys.  Not uploaded to GitHub.
+#include <WiFiUdp.h>				 // OTA - Library to send and receive UDP packets.
+#include <ArduinoOTA.h>			 // OTA - The Arduino OTA library.  Specific version of this are installed along with specific boards in board manager.
+#include <Wire.h>					 // This header is part of the standard library.  https://www.arduino.cc/en/reference/wire
+#include <PubSubClient.h>		 // PubSub is the MQTT API.  Author: Nick O'Leary  https://github.com/knolleary/pubsubclient
+#include <ArduinoJson.h>		 // A JSON manipulation library.  Author: Benoît Blanchon  https://github.com/bblanchon/ArduinoJson  https://arduinojson.org/
+#include <Adafruit_NeoPixel.h> // The Adafruit NeoPixel library to drive the RGB LED on the QT Py.	https://github.com/adafruit/Adafruit_NeoPixel
+#include <Adafruit_BME680.h>	 // Adafruit BME680 (and BME688) library.  https://github.com/adafruit/Adafruit_BME680
+#include "privateInfo.h"		 // Contains passwords, settings, and API keys.  Not uploaded to GitHub.
 
 
 // NeoPixel related values.
 #define NUM_PIXELS 1
-#define RED        0xFF0000
-#define ORANGE     0xFFA500
-#define YELLOW     0xFFFF00
-#define GREEN      0x00FF00
-#define BLUE       0x0000FF
-#define INDIGO     0x4B0082
-#define VIOLET     0xEE82EE
-#define PURPLE     0x800080
-#define BLACK      0x000000
-#define GRAY       0x808080
-#define WHITE      0xFFFFFF
+#define RED 0xFF0000
+#define ORANGE 0xFFA500
+#define YELLOW 0xFFFF00
+#define GREEN 0x00FF00
+#define BLUE 0x0000FF
+#define INDIGO 0x4B0082
+#define VIOLET 0xEE82EE
+#define PURPLE 0x800080
+#define BLACK 0x000000
+#define GRAY 0x808080
+#define WHITE 0xFFFFFF
 
 
 /*
@@ -55,50 +53,50 @@
 // const char * mqttBrokerArray[4] = { "Broker1", "Broker2", "Broker3", "192.168.0.2" };		// Typically declared in "privateInfo.h".
 // int const mqttPortArray[4] = { 1883, 1883, 1883, 2112 };												// Typically declared in "privateInfo.h".
 
-const char * hostName = "QTPy_ESP32-S2_BME688_OTA";								// The hostname used for OTA access.
-const char * notes = "Adafruit QT Py ESP32-S2 with BME688 and OTA";			// Notes sent in the bulk publish.
-const char * commandTopic = "livingRoom/QTPy/command";							// The topic used to subscribe to update commands.  Commands: publishTelemetry, changeTelemetryInterval, publishStatus.
-const char * sketchTopic = "livingRoom/QTPy/sketch";								// The topic used to publish the sketch name.
-const char * macTopic = "livingRoom/QTPy/mac";										// The topic used to publish the MAC address.
-const char * ipTopic = "livingRoom/QTPy/ip";											// The topic used to publish the IP address.
-const char * rssiTopic = "livingRoom/QTPy/rssi";									// The topic used to publish the WiFi Received Signal Strength Indicator.
-const char * publishCountTopic = "livingRoom/QTPy/publishCount";				// The topic used to publish the loop count.
-const char * notesTopic = "livingRoom/QTPy/notes";									// The topic used to publish notes relevant to this project.
-const char * tempCTopic = "livingRoom/QTPy/bme688/tempC";						// The topic used to publish the temperature in Celsius.
-const char * tempFTopic = "livingRoom/QTPy/bme688/tempF";						// The topic used to publish the temperature in Fahrenheit.
-const char * pressureHPaTopic = "livingRoom/QTPy/bme688/pressureHPa";		// The topic used to publish the barometric pressure in hectopascals/millibars.
-const char * humidityTopic = "livingRoom/QTPy/bme688/humidity";				// The topic used to publish the humidity.
-const char * gasResistanceTopic = "livingRoom/QTPy/bme688/gasResistance";	// The topic used to publish the gas resistance.
-const char * altitudeMTopic = "livingRoom/QTPy/bme688/altitudeM";				// The topic used to publish the altitude (derived from barometric pressure).
-const char * mqttStatsTopic = "espStats";												// The topic this device will publish to upon connection to the broker.
-const char * mqttTopic = "espWeather";													// The topic used to publish a single JSON message containing all data.
-const unsigned long JSON_DOC_SIZE = 1024;												// The ArduinoJson document size, and size of some buffers.
-unsigned long publishInterval = 60000;													// The delay in milliseconds between MQTT publishes.  This prevents "flooding" the broker.
-unsigned long sensorPollInterval = 10000;												// The delay between polls of the sensor.  This should be greater than 100 milliseconds.
-unsigned long mqttReconnectInterval = 5000;											// The time between MQTT connection attempts.
-unsigned long wifiConnectionTimeout = 10000;											// The maximum amount of time in milliseconds to wait for a WiFi connection before trying a different SSID.
-unsigned long lastPublishTime = 0;														// Stores the time of the last MQTT publish.
-unsigned long bootTime = 0;																// Stores the time of the most recent boot.
-unsigned long lastPollTime = 0;															// Stores the time of the last sensor poll.
-unsigned long publishCount = 0;															// A count of how many publishes have taken place.
-unsigned int networkIndex = 2112;														// An unsigned integer to hold the correct index for the network arrays: wifiSsidArray[], wifiPassArray[], mqttBrokerArray[], and mqttPortArray[].
-char ipAddress[16];																			// The IPv4 address of the WiFi interface.
-char macAddress[18];																			// The MAC address of the WiFi interface.
-long rssi;																						// A global to hold the Received Signal Strength Indicator.
-float tempC;																					// The sensor temperature in Celsius.
-float tempF;																					// The sensor temperature in Fahrenheit.
-float pressureHPa;																			// The sensor barometric pressure in hectopascals (millibars).
-float humidity;																				// The sensor relative humidity as a percentage.
-float gasResistance;																			// The sensor VOC level represented as electrical resistance of a MOX sensor in Ohms.
-float altitudeM;																				// The sensor estimated altitude in meters.
-float SEA_LEVEL_PRESSURE_HPA = 1025.0;													// This is the barometric sea-level pressure for the sensor's location.
+const char *hostName = "QTPy_ESP32-S2_BME688_OTA";								 // The hostname used for OTA access.
+const char *notes = "Adafruit QT Py ESP32-S2 with BME688 and OTA";		 // Notes sent in the bulk publish.
+const char *commandTopic = "livingRoom/QTPy/command";							 // The topic used to subscribe to update commands.  Commands: publishTelemetry, changeTelemetryInterval, publishStatus.
+const char *sketchTopic = "livingRoom/QTPy/sketch";							 // The topic used to publish the sketch name.
+const char *macTopic = "livingRoom/QTPy/mac";									 // The topic used to publish the MAC address.
+const char *ipTopic = "livingRoom/QTPy/ip";										 // The topic used to publish the IP address.
+const char *rssiTopic = "livingRoom/QTPy/rssi";									 // The topic used to publish the WiFi Received Signal Strength Indicator.
+const char *publishCountTopic = "livingRoom/QTPy/publishCount";			 // The topic used to publish the loop count.
+const char *notesTopic = "livingRoom/QTPy/notes";								 // The topic used to publish notes relevant to this project.
+const char *tempCTopic = "livingRoom/QTPy/bme688/tempC";						 // The topic used to publish the temperature in Celsius.
+const char *tempFTopic = "livingRoom/QTPy/bme688/tempF";						 // The topic used to publish the temperature in Fahrenheit.
+const char *pressureHPaTopic = "livingRoom/QTPy/bme688/pressureHPa";		 // The topic used to publish the barometric pressure in hectopascals/millibars.
+const char *humidityTopic = "livingRoom/QTPy/bme688/humidity";				 // The topic used to publish the humidity.
+const char *gasResistanceTopic = "livingRoom/QTPy/bme688/gasResistance"; // The topic used to publish the gas resistance.
+const char *altitudeMTopic = "livingRoom/QTPy/bme688/altitudeM";			 // The topic used to publish the altitude (derived from barometric pressure).
+const char *mqttStatsTopic = "espStats";											 // The topic this device will publish to upon connection to the broker.
+const char *mqttTopic = "espWeather";												 // The topic used to publish a single JSON message containing all data.
+const unsigned long JSON_DOC_SIZE = 1024;											 // The ArduinoJson document size, and size of some buffers.
+unsigned long publishInterval = 20000;												 // The delay in milliseconds between MQTT publishes.  This prevents "flooding" the broker.
+unsigned long sensorPollInterval = 5000;											 // The delay between polls of the sensor.  This should be greater than 100 milliseconds.
+unsigned long mqttReconnectInterval = 5000;										 // The time between MQTT connection attempts.
+unsigned long wifiConnectionTimeout = 10000;										 // The maximum amount of time in milliseconds to wait for a WiFi connection before trying a different SSID.
+unsigned long lastPublishTime = 0;													 // Stores the time of the last MQTT publish.
+unsigned long bootTime = 0;															 // Stores the time of the most recent boot.
+unsigned long lastPollTime = 0;														 // Stores the time of the last sensor poll.
+unsigned long publishCount = 0;														 // A count of how many publishes have taken place.
+unsigned int networkIndex = 2112;													 // An unsigned integer to hold the correct index for the network arrays: wifiSsidArray[], wifiPassArray[], mqttBrokerArray[], and mqttPortArray[].
+char ipAddress[16];																		 // The IPv4 address of the WiFi interface.
+char macAddress[18];																		 // The MAC address of the WiFi interface.
+long rssi;																					 // A global to hold the Received Signal Strength Indicator.
+float tempC;																				 // The sensor temperature in Celsius.
+float tempF;																				 // The sensor temperature in Fahrenheit.
+float pressureHPa;																		 // The sensor barometric pressure in hectopascals (millibars).
+float humidity;																			 // The sensor relative humidity as a percentage.
+float gasResistance;																		 // The sensor VOC level represented as electrical resistance of a MOX sensor in Ohms.
+float altitudeM;																			 // The sensor estimated altitude in meters.
+float SEA_LEVEL_PRESSURE_HPA = 1013.0;												 // This is the barometric sea-level pressure for the sensor's location.
 
 
 // Class objects.
-WiFiClient wifiClient;																			// Network client.  Used only by the MQTT client.
-PubSubClient mqttClient( wifiClient );														// MQTT client to manage communication to the broker.
-Adafruit_NeoPixel pixels( NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800 );		// An object to manage the onboard RGB LED.
-Adafruit_BME680 bme;																				// The Bosch BME688 atmospheric sensor.
+WiFiClient wifiClient;																		 // Network client.  Used only by the MQTT client.
+PubSubClient mqttClient( wifiClient );													 // MQTT client to manage communication to the broker.
+Adafruit_NeoPixel pixels( NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800 ); // An object to manage the onboard RGB LED.
+Adafruit_BME680 bme;																			 // The Bosch BME688 atmospheric sensor.
 
 
 /**
@@ -127,7 +125,7 @@ void setup()
 	pixels.show();
 
 	Serial.println( "Configuring I2C to use the Stemma QT port." );
-	Wire.setPins( SDA1, SCL1 );	// This is what selects the Stemma QT port, otherwise the two pin headers will be I2C.
+	Wire.setPins( SDA1, SCL1 ); // This is what selects the Stemma QT port, otherwise the two pin headers will be I2C.
 	Wire.begin();
 
 	Serial.println( __FILE__ );
@@ -211,7 +209,7 @@ void setupBme688()
 	bme.setHumidityOversampling( BME680_OS_2X );
 	bme.setPressureOversampling( BME680_OS_4X );
 	bme.setIIRFilterSize( BME680_FILTER_SIZE_3 );
-	bme.setGasHeater( 320, 150 );		// 320*C for 150 ms
+	bme.setGasHeater( 320, 150 ); // 320*C for 150 ms
 
 	Serial.println( "BME688 has been initialized." );
 } // End of setupBme688() function.
