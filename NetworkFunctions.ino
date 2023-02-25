@@ -240,6 +240,7 @@ bool mqttMultiConnect( int maxAttempts )
 	else
 		Serial.printf( "Attempting to connect to the MQTT broker up to %d times.\n", maxAttempts );
 
+	mqttClient.setCallback( onReceiveCallback );
 
 	int attemptNumber = 0;
 	// Loop until MQTT has connected.
