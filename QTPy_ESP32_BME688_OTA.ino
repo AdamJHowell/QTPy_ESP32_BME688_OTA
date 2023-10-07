@@ -11,11 +11,11 @@
  */
 #ifdef ESP8266
 // These headers are installed when the ESP8266 is installed in board manager.
-#include <ESP8266WiFi.h> // ESP8266 Wifi support.  https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WiFi
+#include <ESP8266WiFi.h> // ESP8266 Wi-Fi support.  https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WiFi
 #include <ESP8266mDNS.h> // OTA - Multicast DNS for the ESP8266.
 #else
 // These headers are installed when the ESP32 is installed in board manager.
-#include <WiFi.h>		// ESP32 Wifi support.  https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFi.h
+#include <WiFi.h>		// ESP32 Wi-Fi support.  https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/src/WiFi.h
 #include <ESPmDNS.h> // OTA - Multicast DNS for the ESP32.
 #endif
 #include <WiFiUdp.h>				 // OTA - Library to send and receive UDP packets.
@@ -59,7 +59,7 @@ const char *commandTopic = "LivingRoom/QTPy/command";							 // The topic used t
 const char *sketchTopic = "LivingRoom/QTPy/sketch";							 // The topic used to publish the sketch name.
 const char *macTopic = "LivingRoom/QTPy/mac";									 // The topic used to publish the MAC address.
 const char *ipTopic = "LivingRoom/QTPy/ip";										 // The topic used to publish the IP address.
-const char *rssiTopic = "LivingRoom/QTPy/rssi";									 // The topic used to publish the WiFi Received Signal Strength Indicator.
+const char *rssiTopic = "LivingRoom/QTPy/rssi";									 // The topic used to publish the Wi-Fi Received Signal Strength Indicator.
 const char *publishCountTopic = "LivingRoom/QTPy/publishCount";			 // The topic used to publish the loop count.
 const char *notesTopic = "LivingRoom/QTPy/notes";								 // The topic used to publish notes relevant to this project.
 const char *tempCTopic = "LivingRoom/QTPy/bme688/tempC";						 // The topic used to publish the temperature in Celsius.
@@ -74,14 +74,14 @@ const unsigned long JSON_DOC_SIZE = 1024;											 // The ArduinoJson document
 unsigned long publishInterval = 20000;												 // The delay in milliseconds between MQTT publishes.  This prevents "flooding" the broker.
 unsigned long sensorPollInterval = 5000;											 // The delay between polls of the sensor.  This should be greater than 100 milliseconds.
 unsigned long mqttReconnectInterval = 5000;										 // The time between MQTT connection attempts.
-unsigned long wifiConnectionTimeout = 10000;										 // The maximum amount of time in milliseconds to wait for a WiFi connection before trying a different SSID.
+unsigned long wifiConnectionTimeout = 10000;										 // The maximum amount of time in milliseconds to wait for a Wi-Fi connection before trying a different SSID.
 unsigned long lastPublishTime = 0;													 // Stores the time of the last MQTT publish.
 unsigned long bootTime = 0;															 // Stores the time of the most recent boot.
 unsigned long lastPollTime = 0;														 // Stores the time of the last sensor poll.
 unsigned long publishCount = 0;														 // A count of how many publishes have taken place.
 unsigned int networkIndex = 2112;													 // An unsigned integer to hold the correct index for the network arrays: wifiSsidArray[], wifiPassArray[], mqttBrokerArray[], and mqttPortArray[].
-char ipAddress[16];																		 // The IPv4 address of the WiFi interface.
-char macAddress[18];																		 // The MAC address of the WiFi interface.
+char ipAddress[16];																		 // The IPv4 address of the Wi-Fi interface.
+char macAddress[18];																		 // The MAC address of the Wi-Fi interface.
 long rssi;																					 // A global to hold the Received Signal Strength Indicator.
 float tempC;																				 // The sensor temperature in Celsius.
 float tempF;																				 // The sensor temperature in Fahrenheit.
@@ -139,7 +139,7 @@ void setup()
 	// Get the MAC address and store it in macAddress.
 	snprintf( macAddress, 18, "%s", WiFi.macAddress().c_str() );
 
-	Serial.println( "Connecting WiFi..." );
+	Serial.println( "Connecting Wi-Fi..." );
 	// Set the LED color to yellow.
 	pixels.fill( YELLOW );
 	pixels.show();
@@ -158,7 +158,7 @@ void setup()
 		ESP.restart();
 	}
 
-	// The networkIndex variable is initialized to 2112.  If it is still 2112 at this point, then WiFi failed to connect.
+	// The networkIndex variable is initialized to 2112.  If it is still 2112 at this point, then Wi-Fi failed to connect.
 	if( networkIndex != 2112 )
 	{
 		const char *mqttBroker = mqttBrokerArray[networkIndex];
@@ -254,7 +254,7 @@ void printUptime()
  */
 void printTelemetry()
 {
-	Serial.printf( "WiFi SSID: %s\n", wifiSsidArray[networkIndex] );
+	Serial.printf( "Wi-Fi SSID: %s\n", wifiSsidArray[networkIndex] );
 	Serial.printf( "Broker: %s:%d\n", mqttBrokerArray[networkIndex], mqttPortArray[networkIndex] );
 	Serial.printf( "Temperature: %.2f C\n", tempC );
 	Serial.printf( "Temperature: %.2f F\n", tempF );
@@ -262,7 +262,7 @@ void printTelemetry()
 	Serial.printf( "Pressure = %.2f hPa\n", pressureHPa );
 	Serial.printf( "Gas: %.2f KOhms\n", gasResistance );
 	Serial.printf( "Approximate altitude: %.2f m\n", altitudeM );
-	Serial.printf( "WiFi RSSI: %ld\n", rssi );
+	Serial.printf( "Wi-Fi RSSI: %ld\n", rssi );
 } // End of printTelemetry() function.
 
 

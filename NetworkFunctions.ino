@@ -135,7 +135,7 @@ void wifiMultiConnect()
 		const char *wifiSsid = wifiSsidArray[networkArrayIndex];
 		const char *wifiPassword = wifiPassArray[networkArrayIndex];
 
-		// Announce the WiFi parameters for this connection attempt.
+		// Announce the Wi-Fi parameters for this connection attempt.
 		Serial.print( "Attempting to connect to SSID \"" );
 		Serial.print( wifiSsid );
 		Serial.println( "\"" );
@@ -143,7 +143,7 @@ void wifiMultiConnect()
 		// Don't even try to connect if the SSID cannot be found.
 		if( checkForSSID( wifiSsid ) )
 		{
-			// Attempt to connect to this WiFi network.
+			// Attempt to connect to this Wi-Fi network.
 			Serial.printf( "Wi-Fi mode set to WIFI_STA %s\n", WiFi.mode( WIFI_STA ) ? "" : "Failed!" );
 			if( WiFi.setHostname( hostName ) )
 				Serial.printf( "Network hostname set to '%s'\n", hostName );
@@ -175,14 +175,14 @@ void wifiMultiConnect()
 			{
 				// Set the global 'networkIndex' to the index which successfully connected.
 				networkIndex = networkArrayIndex;
-				// Print that WiFi has connected.
-				Serial.println( "\nWiFi connection established!" );
+				// Print that Wi-Fi has connected.
+				Serial.println( "\nWi-Fi connection established!" );
 				snprintf( ipAddress, 16, "%d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3] );
 				Serial.printf( "IP address: %s", ipAddress );
 				return;
 			}
 			else
-				Serial.println( "Unable to connect to WiFi!" );
+				Serial.println( "Unable to connect to Wi-Fi!" );
 		}
 		else
 			Serial.println( "That network was not found!" );
@@ -200,7 +200,7 @@ int checkForSSID( const char *ssidName )
 {
 	byte networkCount = WiFi.scanNetworks();
 	if( networkCount == 0 )
-		Serial.println( "No WiFi SSIDs are in range!" );
+		Serial.println( "No Wi-Fi SSIDs are in range!" );
 	else
 	{
 		Serial.printf( "%d networks found.\n", networkCount );
@@ -219,7 +219,7 @@ int checkForSSID( const char *ssidName )
 
 /*
  * mqttMultiConnect() will:
- * 1. Check the WiFi connection, and reconnect WiFi as needed.
+ * 1. Check the Wi-Fi connection, and reconnect Wi-Fi as needed.
  * 2. Attempt to connect the MQTT client designated in 'mqttBrokerArray[networkIndex]' up to 'maxAttempts' number of times.
  * 3. Subscribe to the topic defined in 'commandTopic'.
  * If the broker connection cannot be made, an error will be printed to the serial port.
@@ -232,7 +232,7 @@ bool mqttMultiConnect( int maxAttempts )
 
 	/*
 	 * The networkIndex variable is initialized to 2112.
-	 * If it is still 2112 at this point, then WiFi failed to connect.
+	 * If it is still 2112 at this point, then Wi-Fi failed to connect.
 	 * This is only needed to display the name and port of the broker being used.
 	 */
 	if( networkIndex != 2112 )
