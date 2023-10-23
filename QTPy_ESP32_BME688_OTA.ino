@@ -53,6 +53,8 @@
 // const char * mqttBrokerArray[4] = { "Broker1", "Broker2", "Broker3", "192.168.0.2" };		// Typically declared in "privateInfo.h".
 // int const mqttPortArray[4] = { 1883, 1883, 1883, 2112 };												// Typically declared in "privateInfo.h".
 
+// Device topic format: <location>/<device>/<metric>
+// Sensor topic format: <location>/<device>/<sensor>/<metric>
 const char *hostName = "QTPy-ESP32-S2-BME688-OTA";								 // The hostname used for OTA access.
 const char *notes = "Adafruit QT Py ESP32-S2 with BME688 and OTA";		 // Notes sent in the bulk publish.
 const char *commandTopic = "LivingRoom/QTPy/command";							 // The topic used to subscribe to update commands.  Commands: publishTelemetry, changeTelemetryInterval, publishStatus.
@@ -300,7 +302,6 @@ void publishTelemetry()
 	{
 		Serial.println( "Successfully published to:" );
 		char buffer[20];
-		// New topic format: <location>/<device>/<sensor>/<metric>
 		if( mqttClient.publish( sketchTopic, __FILE__, false ) )
 			Serial.printf( "  %s\n", sketchTopic );
 		if( mqttClient.publish( macTopic, macAddress, false ) )
