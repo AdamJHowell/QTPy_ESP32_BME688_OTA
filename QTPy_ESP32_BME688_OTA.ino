@@ -70,8 +70,6 @@ const char *pressureHPaTopic = "LivingRoom/QTPy/bme688/pressureHPa";		 // The to
 const char *humidityTopic = "LivingRoom/QTPy/bme688/humidity";				 // The topic used to publish the humidity.
 const char *gasResistanceTopic = "LivingRoom/QTPy/bme688/gasResistance"; // The topic used to publish the gas resistance.
 const char *altitudeMTopic = "LivingRoom/QTPy/bme688/altitudeM";			 // The topic used to publish the altitude (derived from barometric pressure).
-const char *mqttStatsTopic = "espStats";											 // The topic this device will publish to upon connection to the broker.
-const char *mqttTopic = "espWeather";												 // The topic used to publish a single JSON message containing all data.
 const unsigned long JSON_DOC_SIZE = 1024;											 // The ArduinoJson document size, and size of some buffers.
 unsigned long publishInterval = 20000;												 // The delay in milliseconds between MQTT publishes.  This prevents "flooding" the broker.
 unsigned long sensorPollInterval = 5000;											 // The delay between polls of the sensor.  This should be greater than 100 milliseconds.
@@ -273,106 +271,42 @@ void printTelemetry()
  */
 void publishTelemetry()
 {
-	// Create a JSON Document on the stack.
-	StaticJsonDocument<JSON_DOC_SIZE> publishTelemetryJsonDoc;
-	// Add data: __FILE__, macAddress, ipAddress, tempC, pressureHPa, humidity, gasResistance, altitudeM, rssi, publishCount, notes
-	publishTelemetryJsonDoc["sketch"] = __FILE__;
-	publishTelemetryJsonDoc["mac"] = macAddress;
-	publishTelemetryJsonDoc["ip"] = ipAddress;
-	publishTelemetryJsonDoc["rssi"] = rssi;
-	publishTelemetryJsonDoc["publishCount"] = publishCount;
-	publishTelemetryJsonDoc["notes"] = notes;
+  Serial.println( "Successfully published to:" );
+  char buffer[20];
+  if( mqttClient.publish( sketchTopic, __FILE__, false ) )
+    Serial.printf( "  %s\n", sketchTopic );
+  if( mqttClient.publish( macTopic, macAddress, false ) )
+    Serial.printf( "  %s\n", macTopic );
+  if( mqttClient.publish( ipTopic, ipAddress, false ) )
+    Serial.printf( "  %s\n", ipTopic );
+  if( mqttClient.publish( rssiTopic, ltoa( rssi, buffer, 10 ), false ) )
+    Serial.printf( "  %s\n", rssiTopic );
+  if( mqttClient.publish( publishCountTopic, ltoa( publishCount, buffer, 10 ), false ) )
+    Serial.printf( "  %s\n", publishCountTopic );
+  if( mqttClient.publish( notesTopic, notes, false ) )
+    Serial.printf( "  %s\n", notesTopic );
 
-	publishTelemetryJsonDoc["tempC"] = tempC;
-	publishTelemetryJsonDoc["tempF"] = tempF;
-	publishTelemetryJsonDoc["pressure"] = pressureHPa;
-	publishTelemetryJsonDoc["humidity"] = humidity;
-	publishTelemetryJsonDoc["gasResistance"] = gasResistance;
-	publishTelemetryJsonDoc["altitudeM"] = altitudeM;
+  dtostrf( tempC, 1, 3, buffer );
+  if( mqttClient.publish( tempCTopic, buffer, false ) )
+    Serial.printf( "  %s\n", tempCTopic );
+  dtostrf( tempF, 1, 3, buffer );
+  if( mqttClient.publish( tempFTopic, buffer, false ) )
+    Serial.printf( "  %s\n", tempFTopic );
+  dtostrf( pressureHPa, 1, 3, buffer );
+  if( mqttClient.publish( pressureHPaTopic, buffer, false ) )
+    Serial.printf( "  %s\n", pressureHPaTopic );
+  dtostrf( humidity, 1, 3, buffer );
+  if( mqttClient.publish( humidityTopic, buffer, false ) )
+    Serial.printf( "  %s\n", humidityTopic );
+  dtostrf( gasResistance, 1, 3, buffer );
+  if( mqttClient.publish( gasResistanceTopic, buffer, false ) )
+    Serial.printf( "  %s\n", gasResistanceTopic );
+  dtostrf( altitudeM, 1, 3, buffer );
+  if( mqttClient.publish( altitudeMTopic, buffer, false ) )
+    Serial.printf( "  %s\n", altitudeMTopic );
 
-	// Prepare a String to hold the JSON.
-	char mqttString[JSON_DOC_SIZE];
-
-	// Serialize the JSON into mqttString, with indentation and line breaks.
-	serializeJsonPretty( publishTelemetryJsonDoc, mqttString );
-
-	// Publish the JSON to the MQTT broker.
-	bool success = mqttClient.publish( mqttTopic, mqttString, false );
-	if( success )
-	{
-		Serial.println( "Successfully published to:" );
-		char buffer[20];
-		if( mqttClient.publish( sketchTopic, __FILE__, false ) )
-			Serial.printf( "  %s\n", sketchTopic );
-		if( mqttClient.publish( macTopic, macAddress, false ) )
-			Serial.printf( "  %s\n", macTopic );
-		if( mqttClient.publish( ipTopic, ipAddress, false ) )
-			Serial.printf( "  %s\n", ipTopic );
-		if( mqttClient.publish( rssiTopic, ltoa( rssi, buffer, 10 ), false ) )
-			Serial.printf( "  %s\n", rssiTopic );
-		if( mqttClient.publish( publishCountTopic, ltoa( publishCount, buffer, 10 ), false ) )
-			Serial.printf( "  %s\n", publishCountTopic );
-		if( mqttClient.publish( notesTopic, notes, false ) )
-			Serial.printf( "  %s\n", notesTopic );
-
-		dtostrf( tempC, 1, 3, buffer );
-		if( mqttClient.publish( tempCTopic, buffer, false ) )
-			Serial.printf( "  %s\n", tempCTopic );
-		dtostrf( tempF, 1, 3, buffer );
-		if( mqttClient.publish( tempFTopic, buffer, false ) )
-			Serial.printf( "  %s\n", tempFTopic );
-		dtostrf( pressureHPa, 1, 3, buffer );
-		if( mqttClient.publish( pressureHPaTopic, buffer, false ) )
-			Serial.printf( "  %s\n", pressureHPaTopic );
-		dtostrf( humidity, 1, 3, buffer );
-		if( mqttClient.publish( humidityTopic, buffer, false ) )
-			Serial.printf( "  %s\n", humidityTopic );
-		dtostrf( gasResistance, 1, 3, buffer );
-		if( mqttClient.publish( gasResistanceTopic, buffer, false ) )
-			Serial.printf( "  %s\n", gasResistanceTopic );
-		dtostrf( altitudeM, 1, 3, buffer );
-		if( mqttClient.publish( altitudeMTopic, buffer, false ) )
-			Serial.printf( "  %s\n", altitudeMTopic );
-
-		Serial.printf( "Successfully published to '%s', this JSON:\n", mqttTopic );
-	}
-	else
-		Serial.println( "MQTT publish failed!  Attempted to publish this JSON to the broker:" );
-	// Print the JSON to the Serial port.
-	Serial.println( mqttString );
 	lastPublishTime = millis();
 } // End of publishTelemetry() function.
-
-
-/*
- * publishStats() is called by mqttMultiConnect() every time the device (re)connects to the broker, and every publishInterval milliseconds thereafter.
- * It is also called by the callback when the "publishStats" command is received.
- */
-void publishStats()
-{
-	char mqttStatsString[JSON_DOC_SIZE];
-	// Create a JSON Document on the stack.
-	StaticJsonDocument<JSON_DOC_SIZE> doc;
-	// Add data: __FILE__, macAddress, ipAddress, rssi, publishCount
-	doc["sketch"] = __FILE__;
-	doc["mac"] = macAddress;
-	doc["ip"] = ipAddress;
-	doc["rssi"] = rssi;
-	doc["publishCount"] = publishCount;
-
-	// Serialize the JSON into mqttStatsString, with indentation and line breaks.
-	serializeJsonPretty( doc, mqttStatsString );
-
-	Serial.printf( "Publishing stats to the '%s' topic.\n", mqttStatsTopic );
-
-	if( mqttClient.connected() )
-	{
-		if( mqttClient.connected() && mqttClient.publish( mqttStatsTopic, mqttStatsString ) )
-			Serial.printf( "Published to this broker and port: %s:%d, and to this topic '%s':\n%s\n", mqttBrokerArray[networkIndex], mqttPortArray[networkIndex], mqttStatsTopic, mqttStatsString );
-		else
-			Serial.println( "\n\nPublish failed!\n\n" );
-	}
-} // End of publishStats() function.
 
 
 void loop()
@@ -407,7 +341,6 @@ void loop()
 		printUptime();
 		printTelemetry();
 		publishTelemetry();
-		publishStats();
 
 		Serial.printf( "publishCount: %lu\n", publishCount );
 
