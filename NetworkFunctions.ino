@@ -261,7 +261,6 @@ bool mqttMultiConnect( int maxAttempts )
 				Serial.println( "Restarting the device!" );
 				ESP.restart();
 			}
-			publishStats();
 			// Subscribe to the command topic.
 			if( mqttClient.subscribe( commandTopic ) )
 				Serial.printf( "Successfully subscribed to topic '%s'.\n", commandTopic );
